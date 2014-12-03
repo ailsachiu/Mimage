@@ -23,13 +23,13 @@ public class Mimage {
       return;
     }
     // Create a buffered image for each file
-    ArrayList<BufferedImage> images = new ArrayList<BufferedImage>();
+    ArrayList<Image> images = new ArrayList<Image>();
     for (File file : files) {
       String filePath = folderPath + file.getName();
-      images.add(getImage(WIDTH, HEIGHT, filePath));
+      images.add(new Image(getImage(WIDTH, HEIGHT, filePath),file.getName()));
     }
     // Display each buffered image
-    for (BufferedImage image : images) {
+    for (Image image : images) {
       displayImage(image);
     }
   }
@@ -71,10 +71,10 @@ public class Mimage {
     return null;
   }
 
-  private static void displayImage(BufferedImage img) {
+  private static void displayImage(Image image) {
     // Use a label to display the image
-    JFrame frame = new JFrame();
-    JLabel label = new JLabel(new ImageIcon(img));
+    JFrame frame = new JFrame(image.name);
+    JLabel label = new JLabel(new ImageIcon(image.img));
     frame.getContentPane().add(label, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
