@@ -4,6 +4,7 @@ import java.io.*;
 import java.lang.*;
 import java.util.*;
 import javax.swing.*;
+import javax.media.jai.*;
 
 public class Mimage {
 
@@ -30,8 +31,10 @@ public class Mimage {
     }
     // Display each buffered image
     for (Image image : images) {
+      image.setHistogram();
       displayImage(image);
     }
+
   }
 
   private static BufferedImage getImage(int width, int height, String fileName) {
