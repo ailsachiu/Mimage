@@ -28,13 +28,67 @@ public class Mimage {
     for (File file : files) {
       String filePath = folderPath + file.getName();
       images.add(new Image(getImage(WIDTH, HEIGHT, filePath),file.getName()));
+      images.get(images.size()-1).setHistogram();
     }
+    int[][] differenceMatrix = findDifferences(images);
+    for(int i=0; i < images.size(); i++) {
+      System.out.print(images.get(i).name + ": ");
+      for(int j=0; j < images.size(); j++) {
+        System.out.print(differenceMatrix[j][i] + " ");
+      }
+      System.out.println();
+    }
+
     // Display each buffered image
     for (Image image : images) {
-      image.setHistogram();
       displayImage(image);
     }
 
+  }
+
+
+  private static int[][] findDifferences(ArrayList<Image> images) {
+    int[][] differenceMatrix = new int[images.size()][images.size()];
+    for(int i=0; i < images.size(); i++) {
+      for(int j=0; j < images.size(); j++) {
+        if(i == j)
+          continue;
+        differenceMatrix[i][j] = getDifference(images.get(i),images.get(j));
+      }
+    }
+    return differenceMatrix;
+  }
+
+  private static int getDifference(Image image1, Image image2) {
+    Histogram h1 = image1.getHistogram();
+    Histogram h2 = image2.getHistogram();
+
+    int[] bins1 = h1.getBins(0);
+    int[] bins2 = h2.getBins(0);
+    int differenceSum = 0;
+    if(bins1.length == bins2.length) {
+      for(int i=0; i < bins1.length; i++) {
+        differenceSum += Math.abs(bins1[i] - bins2[i]);
+      }
+    }
+
+    bins1 = h1.getBins(1);
+    bins2 = h2.getBins(1);
+    if(bins1.length == bins2.length) {
+      for(int i=0; i < bins1.length; i++) {
+        differenceSum += Math.abs(bins1[i] - bins2[i]);
+      }
+    }
+
+    bins1 = h1.getBins(2);
+    bins2 = h2.getBins(2);
+    if(bins1.length == bins2.length) {
+      for(int i=0; i < bins1.length; i++) {
+        differenceSum += Math.abs(bins1[i] - bins2[i]);
+      }
+    }
+
+    return differenceSum;
   }
 
   private static BufferedImage getImage(int width, int height, String fileName) {
