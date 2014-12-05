@@ -29,11 +29,10 @@ public class Mimage {
       String filePath = folderPath + file.getName();
       ArrayList<BufferedImage> frames = getImages(WIDTH, HEIGHT, filePath);
       for (BufferedImage frame : frames) {
-        images.add(new Image(frame, file.getName()));
-        images.get(images.size()-1).setHistogram();
+        Image image = new Image(frame, file.getName());
+        image.setHistogram();
+        images.add(image);
       }
-      // images.add(getImages(WIDTH, HEIGHT, filePath), file.getName());
-      // images.get(images.size()-1).setHistogram();
     }
     int[][] differenceMatrix = findDifferences(images);
     for(int i=0; i < images.size(); i++) {
