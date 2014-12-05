@@ -27,8 +27,13 @@ public class Mimage {
     ArrayList<Image> images = new ArrayList<Image>();
     for (File file : files) {
       String filePath = folderPath + file.getName();
-      images.add(new Image(getImage(WIDTH, HEIGHT, filePath),file.getName()));
-      images.get(images.size()-1).setHistogram();
+      ArrayList<BufferedImage> frames = getImages(WIDTH, HEIGHT, filePath);
+      for (BufferedImage frame : frames) {
+        images.add(new Image(frame, file.getName()));
+        images.get(images.size()-1).setHistogram();
+      }
+      // images.add(getImages(WIDTH, HEIGHT, filePath), file.getName());
+      // images.get(images.size()-1).setHistogram();
     }
     int[][] differenceMatrix = findDifferences(images);
     for(int i=0; i < images.size(); i++) {
@@ -43,7 +48,6 @@ public class Mimage {
     for (Image image : images) {
       displayImage(image);
     }
-
   }
 
 
@@ -58,6 +62,7 @@ public class Mimage {
     }
     return differenceMatrix;
   }
+
 
   private static int getDifference(Image image1, Image image2) {
     Histogram h1 = image1.getHistogram();
@@ -91,8 +96,9 @@ public class Mimage {
     return differenceSum;
   }
 
-  private static BufferedImage getImage(int width, int height, String fileName) {
-    BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+  private static ArrayList<BufferedImage> getImages(int width, int height, String fileName) {
+    ArrayList<BufferedImage> images = new ArrayList<BufferedImage>();
     try {
       File file = new File(fileName);
       InputStream is = new FileInputStream(file);
@@ -107,18 +113,23 @@ public class Mimage {
       }
       // Fill contents of the buffered image
       int ind = 0;
-      for(int y = 0; y < height; y++){
-        for(int x = 0; x < width; x++){
-          byte r = bytes[ind];
-          byte g = bytes[ind+height*width];
-          byte b = bytes[ind+height*width*2]; 
-          int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-          img.setRGB(x,y,pix);
-          ind++;
+      while (ind+HEIGHT*WIDTH*2 < len) {
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        for(int y = 0; y < height; y++){
+          for(int x = 0; x < width; x++){
+            byte r = bytes[ind];
+            byte g = bytes[ind+height*width];
+            byte b = bytes[ind+height*width*2]; 
+            int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+            img.setRGB(x,y,pix);
+            ind++;
+          }
         }
+        // Add buffered image to array list
+        images.add(img);
+        ind += WIDTH*HEIGHT*2;
       }
-      // Return buffered image
-      return img;
+      return images;
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } catch (IOException e) {
@@ -127,6 +138,7 @@ public class Mimage {
     // Failed to create image
     return null;
   }
+
 
   private static void displayImage(Image image) {
     // Use a label to display the image
