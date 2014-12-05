@@ -10,12 +10,14 @@ public class Mimage {
 
   private static int WIDTH;
   private static int HEIGHT;
+  private static int CLUSTERS;
 
   public static void main(String[] args) {
     // Read in command line arguments
     String folderPath = args[0];
     WIDTH = Integer.parseInt(args[1]);
     HEIGHT = Integer.parseInt(args[2]);
+    CLUSTERS = Integer.parseInt(args[3]);
     // Grab every image file in the directory
     File folder = new File(folderPath);
     File[] files = folder.listFiles();
@@ -42,11 +44,26 @@ public class Mimage {
       }
       System.out.println();
     }
+    Clusterizer clusterizer = new Clusterizer(images, differenceMatrix);
+    ArrayList<ArrayList<Image>> clusters = clusterizer.getClusters(CLUSTERS);
 
-    // Display each buffered image
-    for (Image image : images) {
-      displayImage(image);
+    int index = 1;
+    for (ArrayList<Image> cluster : clusters) {
+      JFrame frame = new JFrame("Cluster " + index);
+      JPanel container = new JPanel();
+      for (Image image : cluster) {
+        container.add(new JLabel(new ImageIcon(image.img)));
+      }
+      JScrollPane pane = new JScrollPane(container);
+      frame.getContentPane().add(pane, BorderLayout.CENTER);
+      frame.pack();
+      frame.setVisible(true);
+      index ++;
     }
+    // Display each buffered image
+    // for (Image image : images) {
+    //   displayImage(image);
+    // }
   }
 
 
