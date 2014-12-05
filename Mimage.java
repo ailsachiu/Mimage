@@ -10,14 +10,12 @@ public class Mimage {
 
   private static int WIDTH;
   private static int HEIGHT;
-  private static int CLUSTERS;
 
   public static void main(String[] args) {
     // Read in command line arguments
     String folderPath = args[0];
     WIDTH = Integer.parseInt(args[1]);
     HEIGHT = Integer.parseInt(args[2]);
-    CLUSTERS = Integer.parseInt(args[3]);
     // Grab every image file in the directory
     File folder = new File(folderPath);
     File[] files = folder.listFiles();
@@ -36,36 +34,27 @@ public class Mimage {
         images.add(image);
       }
     }
-    int[][] differenceMatrix = findDifferences(images);
-    for(int i=0; i < images.size(); i++) {
-      System.out.print(images.get(i).name + ": ");
-      for(int j=0; j < images.size(); j++) {
-        System.out.print(differenceMatrix[j][i] + " ");
-      }
-      System.out.println();
-    }
-    Clusterizer clusterizer = new Clusterizer(images, differenceMatrix);
-    ArrayList<ArrayList<Image>> clusters = clusterizer.getClusters(CLUSTERS);
 
-    int index = 1;
-    for (ArrayList<Image> cluster : clusters) {
-      JFrame frame = new JFrame("Cluster " + index);
-      JPanel container = new JPanel();
-      for (Image image : cluster) {
-        container.add(new JLabel(new ImageIcon(image.img)));
-      }
-      JScrollPane pane = new JScrollPane(container);
-      frame.getContentPane().add(pane, BorderLayout.CENTER);
-      frame.pack();
-      frame.setVisible(true);
-      index ++;
-    }
-    // Display each buffered image
-    // for (Image image : images) {
-    //   displayImage(image);
-    // }
+    ArrayList<ArrayList<Image>> clusters = getImageClusters(images);
+    displayClusters(clusters);
   }
 
+
+  private static ArrayList<ArrayList<Image>> getImageClusters(ArrayList<Image> images) {
+    if (images.size() < 16) {
+      ArrayList<ArrayList<Image>> cluster = new ArrayList<ArrayList<Image>>();
+      cluster.add(images);
+      return cluster;
+    }
+    int[][] differences = findDifferences(images);
+    Clusterizer clusterizer = new Clusterizer(images, differences);
+    ArrayList<ArrayList<Image>> clusters = clusterizer.getClusters(2);
+    ArrayList<ArrayList<Image>> finalClusters = new ArrayList<ArrayList<Image>>();
+    for (ArrayList<Image> cluster : clusters) {
+      finalClusters.addAll(getImageClusters(cluster));
+    }
+    return finalClusters;
+  }
 
   private static int[][] findDifferences(ArrayList<Image> images) {
     int[][] differenceMatrix = new int[images.size()][images.size()];
@@ -155,6 +144,22 @@ public class Mimage {
     return null;
   }
 
+
+  private static void displayClusters(ArrayList<ArrayList<Image>> clusters) {
+    int index = 1;
+    for (ArrayList<Image> cluster : clusters) {
+      JFrame frame = new JFrame("Cluster " + index);
+      JPanel container = new JPanel();
+      for (Image image : cluster) {
+        container.add(new JLabel(new ImageIcon(image.img)));
+      }
+      JScrollPane pane = new JScrollPane(container);
+      frame.getContentPane().add(pane, BorderLayout.CENTER);
+      frame.pack();
+      frame.setVisible(true);
+      index ++;
+    }
+  }
 
   private static void displayImage(Image image) {
     // Use a label to display the image
