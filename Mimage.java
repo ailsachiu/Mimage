@@ -11,6 +11,7 @@ public class Mimage {
 
   private static int WIDTH;
   private static int HEIGHT;
+  private static int BIN_SIZE = 32;
   private static ArrayList<Image> content;
 
   public static void main(String[] args) {
@@ -85,26 +86,38 @@ public class Mimage {
     int[] bins1 = h1.getBins(0);
     int[] bins2 = h2.getBins(0);
     int differenceSum = 0;
-    if(bins1.length == bins2.length) {
-      for(int i=0; i < bins1.length; i++) {
-        differenceSum += Math.abs(bins1[i] - bins2[i]);
+    for (int i = 0; i < bins1.length; i += BIN_SIZE) {
+      int binCount1 = 0;
+      int binCount2 = 0;
+      for (int j = i; j < i + BIN_SIZE; j++) {
+        binCount1 += bins1[j];
+        binCount2 += bins2[j];
       }
+      differenceSum += Math.abs(binCount1 - binCount2);
     }
     // get Green bin from histograms
     bins1 = h1.getBins(1);
     bins2 = h2.getBins(1);
-    if(bins1.length == bins2.length) {
-      for(int i=0; i < bins1.length; i++) {
-        differenceSum += Math.abs(bins1[i] - bins2[i]);
+    for (int i = 0; i < bins1.length; i += BIN_SIZE) {
+      int binCount1 = 0;
+      int binCount2 = 0;
+      for (int j = i; j < i + BIN_SIZE; j++) {
+        binCount1 += bins1[j];
+        binCount2 += bins2[j];
       }
+      differenceSum += Math.abs(binCount1 - binCount2);
     }
     // get Blue bin from histograms
     bins1 = h1.getBins(2);
     bins2 = h2.getBins(2);
-    if(bins1.length == bins2.length) {
-      for(int i=0; i < bins1.length; i++) {
-        differenceSum += Math.abs(bins1[i] - bins2[i]);
+    for (int i = 0; i < bins1.length; i += BIN_SIZE) {
+      int binCount1 = 0;
+      int binCount2 = 0;
+      for (int j = i; j < i + BIN_SIZE; j++) {
+        binCount1 += bins1[j];
+        binCount2 += bins2[j];
       }
+      differenceSum += Math.abs(binCount1 - binCount2);
     }
     // return total histogram difference
     return differenceSum;
