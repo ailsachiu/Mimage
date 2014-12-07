@@ -220,29 +220,22 @@ public class Mimage {
   }
 
   private static void displayVideo(ArrayList<Image> videoFrames) {
-    System.out.println("Displaying video " + videoFrames.get(0).name + " with # of frames: " + videoFrames.size());
     JFrame frame = new JFrame(videoFrames.get(0).name);
     JLabel label = new JLabel(new ImageIcon(videoFrames.get(0).img));
     frame.getContentPane().add(label, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
-    // javax.swing.Timer timer = new javax.swing.Timer(1000/30, new ActionListener() {
-    //   public void actionPerformed(ActionEvent e) {
-    //     if (count < videoFrames.size()) {
-    //       label.setIcon(new ImageIcon(videoFrames.get(count).img));
-    //       count ++;
-    //     }
-    //   }
-    // });
-    for (int i = 1; i < videoFrames.size(); i++) {
-      label.setIcon(new ImageIcon(videoFrames.get(i).img));
-      try {
-        Thread.sleep(1000/30); 
-      } catch (InterruptedException e) {
-        System.out.println("exception coughtt");
-        Thread.currentThread().interrupt();
+    javax.swing.Timer t = new javax.swing.Timer(1000/30, new ActionListener() {
+      int count = 1;
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (count < videoFrames.size()) {
+          label.setIcon(new ImageIcon(videoFrames.get(count).img));
+          count ++;
+        }
       }
-    }
+    });
+    t.start();
   }
 
 }
