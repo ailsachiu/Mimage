@@ -23,7 +23,6 @@ public class Image {
     int[] bins = {256, 256, 256};             // The number of bins.
     double[] low = {0.0D, 0.0D, 0.0D};        // The low value.
     double[] high = {256.0D, 256.0D, 256.0D}; // The high value.
-	     
     // Construct the Histogram object.
     Histogram hist = new Histogram(bins, low, high);
  		// Create the parameter block.

@@ -12,7 +12,7 @@ Clusterizer.class: Clusterizer.java
 	javac $(JFLAGS) Clusterizer.java
 
 run: Mimage.class
-	java $(JFLAGS) Mimage ./Dataset/ 352 288
+	java $(JFLAGS) Mimage ./Dataset_all/ 352 288
 
 clean:
 	$(RM) *.class

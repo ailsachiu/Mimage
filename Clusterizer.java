@@ -15,16 +15,12 @@ public class Clusterizer {
     // create clusters of images
     ArrayList<ArrayList<Image>> imageClusters = new ArrayList<ArrayList<Image>>();
     for (ArrayList<Integer> group : groupings) {
-      System.out.println("NEW GROUP:");
       ArrayList<Image> imageGroup = new ArrayList<Image>();
       for (int index : group) {
-        System.out.print(index + " ");
         imageGroup.add(images.get(index));
       }
-      System.out.println();
       imageClusters.add(imageGroup);
     }
-    System.out.println("TOTAL GROUPS: " + groupings.size());
     return imageClusters;
   }
 
@@ -51,7 +47,6 @@ public class Clusterizer {
           }
         }
       }
-      System.out.println("MAXXXXXX of " + max);
       // add indices to arraylist
       if (!indices.contains(firstIndex))
         indices.add(firstIndex);

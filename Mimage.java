@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.lang.*;
@@ -10,6 +11,7 @@ public class Mimage {
 
   private static int WIDTH;
   private static int HEIGHT;
+  private static ArrayList<Image> content;
 
   public static void main(String[] args) {
     // Read in command line arguments
@@ -24,24 +26,32 @@ public class Mimage {
       return;
     }
     // Create a buffered image for each file
-    ArrayList<Image> images = new ArrayList<Image>();
+    content = new ArrayList<Image>();
     for (File file : files) {
       String filePath = folderPath + file.getName();
       ArrayList<BufferedImage> frames = getImages(WIDTH, HEIGHT, filePath);
       for (BufferedImage frame : frames) {
         Image image = new Image(frame, file.getName());
         image.setHistogram();
-        images.add(image);
+        content.add(image);
       }
     }
-
-    ArrayList<ArrayList<Image>> clusters = getImageClusters(images);
-    displayClusters(clusters);
+    // Display image clusters
+    ArrayList<ArrayList<Image>> clusters = getImageClusters(content, content.size()/8);
+    displayGrid(clusters);
   }
 
+  private static BufferedImage getScaledImage(BufferedImage original, int w, int h){
+    BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TRANSLUCENT);
+    Graphics2D g2 = resizedImg.createGraphics();
+    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    g2.drawImage(original, 0, 0, w, h, null);
+    g2.dispose();
+    return resizedImg;
+  }
 
-  private static ArrayList<ArrayList<Image>> getImageClusters(ArrayList<Image> images) {
-    if (images.size() < 16) {
+  private static ArrayList<ArrayList<Image>> getImageClusters(ArrayList<Image> images, int clusterSize) {
+    if (images.size() < clusterSize) {
       ArrayList<ArrayList<Image>> cluster = new ArrayList<ArrayList<Image>>();
       cluster.add(images);
       return cluster;
@@ -51,7 +61,7 @@ public class Mimage {
     ArrayList<ArrayList<Image>> clusters = clusterizer.getClusters(2);
     ArrayList<ArrayList<Image>> finalClusters = new ArrayList<ArrayList<Image>>();
     for (ArrayList<Image> cluster : clusters) {
-      finalClusters.addAll(getImageClusters(cluster));
+      finalClusters.addAll(getImageClusters(cluster, clusterSize));
     }
     return finalClusters;
   }
@@ -68,11 +78,10 @@ public class Mimage {
     return differenceMatrix;
   }
 
-
   private static int getDifference(Image image1, Image image2) {
     Histogram h1 = image1.getHistogram();
     Histogram h2 = image2.getHistogram();
-
+    // get Red bin from histograms
     int[] bins1 = h1.getBins(0);
     int[] bins2 = h2.getBins(0);
     int differenceSum = 0;
@@ -81,7 +90,7 @@ public class Mimage {
         differenceSum += Math.abs(bins1[i] - bins2[i]);
       }
     }
-
+    // get Green bin from histograms
     bins1 = h1.getBins(1);
     bins2 = h2.getBins(1);
     if(bins1.length == bins2.length) {
@@ -89,7 +98,7 @@ public class Mimage {
         differenceSum += Math.abs(bins1[i] - bins2[i]);
       }
     }
-
+    // get Blue bin from histograms
     bins1 = h1.getBins(2);
     bins2 = h2.getBins(2);
     if(bins1.length == bins2.length) {
@@ -97,10 +106,9 @@ public class Mimage {
         differenceSum += Math.abs(bins1[i] - bins2[i]);
       }
     }
-
+    // return total histogram difference
     return differenceSum;
   }
-
 
   private static ArrayList<BufferedImage> getImages(int width, int height, String fileName) {
     ArrayList<BufferedImage> images = new ArrayList<BufferedImage>();
@@ -144,30 +152,97 @@ public class Mimage {
     return null;
   }
 
-
-  private static void displayClusters(ArrayList<ArrayList<Image>> clusters) {
-    int index = 1;
+  private static void displayGrid(ArrayList<ArrayList<Image>> clusters) {
+    JFrame frame = new JFrame("Mīmâgé");
+    JPanel container = new JPanel(new GridLayout(0, 6, 10, 10));
+    container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); 
     for (ArrayList<Image> cluster : clusters) {
-      JFrame frame = new JFrame("Cluster " + index);
-      JPanel container = new JPanel();
-      for (Image image : cluster) {
-        container.add(new JLabel(new ImageIcon(image.img)));
-      }
-      JScrollPane pane = new JScrollPane(container);
-      frame.getContentPane().add(pane, BorderLayout.CENTER);
-      frame.pack();
-      frame.setVisible(true);
-      index ++;
+      BufferedImage scaledImg = getScaledImage(cluster.get(0).img, WIDTH/2, HEIGHT/2);
+      JLabel label = new JLabel(new ImageIcon(scaledImg));
+      container.add(label);
+      label.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent evt) {
+          if (cluster.size() > clusters.size()) {
+            displayGrid(getImageClusters(cluster, cluster.size()/8));
+          }
+          else if (cluster.size() > 1) {
+            String clusterName = "Cluster " + (clusters.indexOf(cluster)+1);
+            displayCluster(cluster, clusterName);
+          } else {
+            displayImage(cluster.get(0));
+          }
+        }
+      });
     }
+    // JScrollPane pane = new JScrollPane(container);
+    frame.getContentPane().add(container, BorderLayout.CENTER);
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  private static void displayCluster(ArrayList<Image> cluster, String name) {
+    JFrame frame = new JFrame(name);
+    JPanel container = new JPanel(new GridLayout(0, 6, 10, 10));
+    container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    for (Image image : cluster) {
+      BufferedImage scaledImg = getScaledImage(image.img, WIDTH/2, HEIGHT/2);
+      JLabel label = new JLabel(new ImageIcon(scaledImg));
+      container.add(label);
+      label.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent evt) {
+          displayImage(image);
+        }
+      });
+    }
+    // JScrollPane pane = new JScrollPane(container);
+    frame.getContentPane().add(container, BorderLayout.CENTER);
+    frame.pack();
+    frame.setVisible(true);
   }
 
   private static void displayImage(Image image) {
+    ArrayList<Image> videoFrames = new ArrayList<Image>();
+    for (Image item : content) {
+      if (item.name.equals(image.name)) {
+        videoFrames.add(item);
+      }
+    }
+    if (videoFrames.size() > 1) {
+      displayVideo(videoFrames);
+      return;
+    }
     // Use a label to display the image
     JFrame frame = new JFrame(image.name);
     JLabel label = new JLabel(new ImageIcon(image.img));
     frame.getContentPane().add(label, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
+  }
+
+  private static void displayVideo(ArrayList<Image> videoFrames) {
+    System.out.println("Displaying video " + videoFrames.get(0).name + " with # of frames: " + videoFrames.size());
+    JFrame frame = new JFrame(videoFrames.get(0).name);
+    JLabel label = new JLabel(new ImageIcon(videoFrames.get(0).img));
+    frame.getContentPane().add(label, BorderLayout.CENTER);
+    frame.pack();
+    frame.setVisible(true);
+    // javax.swing.Timer timer = new javax.swing.Timer(1000/30, new ActionListener() {
+    //   public void actionPerformed(ActionEvent e) {
+    //     if (count < videoFrames.size()) {
+    //       label.setIcon(new ImageIcon(videoFrames.get(count).img));
+    //       count ++;
+    //     }
+    //   }
+    // });
+    for (int i = 1; i < videoFrames.size(); i++) {
+      label.setIcon(new ImageIcon(videoFrames.get(i).img));
+      try {
+        Thread.sleep(1000/30); 
+      } catch (InterruptedException e) {
+        System.out.println("exception coughtt");
+        Thread.currentThread().interrupt();
+      }
+    }
   }
 
 }
