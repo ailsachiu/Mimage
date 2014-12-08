@@ -255,6 +255,13 @@ public class Mimage {
 
   private static void displayVideo(ArrayList<Image> videoFrames) {
     JFrame frame = new JFrame(videoFrames.get(0).name);
+    frame.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        }
+      }
+    });
     JLabel label = new JLabel(new ImageIcon(videoFrames.get(0).img));
     frame.getContentPane().add(label, BorderLayout.CENTER);
     frame.pack();
