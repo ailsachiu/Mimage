@@ -52,9 +52,6 @@ public class Mimage {
         Image image = new Image(frames.get(0), file.getName());
         image.setHistogram();
         content.add(image);
-      } else {
-        // Ignore files that do not have image content
-        System.out.println("Failed to read content from " + file.getName() + ".");
       }
     }
     // Display image clusters
