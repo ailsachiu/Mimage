@@ -207,6 +207,13 @@ public class Mimage {
         }
       });
     }
+    frame.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        }
+      }
+    });
     frame.getContentPane().add(container, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
@@ -214,6 +221,13 @@ public class Mimage {
 
   private static void displayCluster(ArrayList<Image> cluster, String name) {
     JFrame frame = new JFrame(name);
+    frame.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        }
+      }
+    });
     JPanel container = new JPanel(new GridLayout(0, 6, 10, 10));
     container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     for (Image image : cluster) {
@@ -246,6 +260,13 @@ public class Mimage {
     // Use a label to display the image
     JFrame frame = new JFrame(image.name);
     JLabel label = new JLabel(new ImageIcon(image.img));
+    frame.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        }
+      }
+    });
     frame.getContentPane().add(label, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
@@ -253,6 +274,13 @@ public class Mimage {
 
   private static void displayVideo(ArrayList<Image> videoFrames) {
     JFrame frame = new JFrame(videoFrames.get(0).name);
+    frame.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        }
+      }
+    });
     JLabel label = new JLabel(new ImageIcon(videoFrames.get(0).img));
     frame.getContentPane().add(label, BorderLayout.CENTER);
     frame.pack();
