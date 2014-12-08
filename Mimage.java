@@ -13,6 +13,7 @@ public class Mimage {
   private static int HEIGHT;
   private static int BIN_SIZE = 32;
   private static ArrayList<Image> content;
+  private static ArrayList<Image> videoContent;
 
   public static void main(String[] args) {
     // Read in command line arguments
@@ -28,18 +29,79 @@ public class Mimage {
     }
     // Create a buffered image for each file
     content = new ArrayList<Image>();
+    videoContent = new ArrayList<Image>();
     for (File file : files) {
       String filePath = folderPath + file.getName();
       ArrayList<BufferedImage> frames = getImages(WIDTH, HEIGHT, filePath);
-      for (BufferedImage frame : frames) {
-        Image image = new Image(frame, file.getName());
+      // Perform different actions for image vs video
+      if (frames.size() > 1) {
+        // Run separate clustering for video
+        ArrayList<Image> video = new ArrayList<Image>();
+        for (BufferedImage frame : frames) {
+          Image image = new Image(frame, file.getName());
+          image.setHistogram();
+          video.add(image);
+          videoContent.add(image);
+        }
+        ArrayList<ArrayList<Image>> videoClusters = getImageClusters(video, video.size()/4);
+        for (ArrayList<Image> cluster : videoClusters) {
+          content.add(cluster.get(0));
+        }
+      } else if (frames.size() == 1){
+        // Just an image, add to list of images
+        Image image = new Image(frames.get(0), file.getName());
         image.setHistogram();
         content.add(image);
+      } else {
+        // Ignore files that do not have image content
+        System.out.println("Failed to read content from " + file.getName() + ".");
       }
     }
     // Display image clusters
     ArrayList<ArrayList<Image>> clusters = getImageClusters(content, content.size()/8);
     displayGrid(clusters);
+  }
+
+  private static ArrayList<BufferedImage> getImages(int width, int height, String fileName) {
+    ArrayList<BufferedImage> images = new ArrayList<BufferedImage>();
+    try {
+      File file = new File(fileName);
+      InputStream is = new FileInputStream(file);
+      // Get length of file and create byte array
+      long len = file.length();
+      byte[] bytes = new byte[(int)len];
+      // Read all bytes from image file into byte array
+      int offset = 0;
+      int numRead = 0;
+      while (offset < bytes.length && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
+        offset += numRead;
+      }
+      // Fill contents of the buffered image
+      int ind = 0;
+      while (ind+HEIGHT*WIDTH*2 < len) {
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        for(int y = 0; y < height; y++){
+          for(int x = 0; x < width; x++){
+            byte r = bytes[ind];
+            byte g = bytes[ind+height*width];
+            byte b = bytes[ind+height*width*2]; 
+            int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+            img.setRGB(x,y,pix);
+            ind++;
+          }
+        }
+        // Add buffered image to array list
+        images.add(img);
+        ind += WIDTH*HEIGHT*2;
+      }
+      return images;
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    // Failed to create image
+    return null;
   }
 
   private static BufferedImage getScaledImage(BufferedImage original, int w, int h){
@@ -123,48 +185,6 @@ public class Mimage {
     return differenceSum;
   }
 
-  private static ArrayList<BufferedImage> getImages(int width, int height, String fileName) {
-    ArrayList<BufferedImage> images = new ArrayList<BufferedImage>();
-    try {
-      File file = new File(fileName);
-      InputStream is = new FileInputStream(file);
-      // Get length of file and create byte array
-      long len = file.length();
-      byte[] bytes = new byte[(int)len];
-      // Read all bytes from image file into byte array
-      int offset = 0;
-      int numRead = 0;
-      while (offset < bytes.length && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
-        offset += numRead;
-      }
-      // Fill contents of the buffered image
-      int ind = 0;
-      while (ind+HEIGHT*WIDTH*2 < len) {
-        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        for(int y = 0; y < height; y++){
-          for(int x = 0; x < width; x++){
-            byte r = bytes[ind];
-            byte g = bytes[ind+height*width];
-            byte b = bytes[ind+height*width*2]; 
-            int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-            img.setRGB(x,y,pix);
-            ind++;
-          }
-        }
-        // Add buffered image to array list
-        images.add(img);
-        ind += WIDTH*HEIGHT*2;
-      }
-      return images;
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    // Failed to create image
-    return null;
-  }
-
   private static void displayGrid(ArrayList<ArrayList<Image>> clusters) {
     JFrame frame = new JFrame("Mīmâgé");
     JPanel container = new JPanel(new GridLayout(0, 6, 10, 10));
@@ -187,7 +207,6 @@ public class Mimage {
         }
       });
     }
-    // JScrollPane pane = new JScrollPane(container);
     frame.getContentPane().add(container, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
@@ -215,7 +234,7 @@ public class Mimage {
 
   private static void displayImage(Image image) {
     ArrayList<Image> videoFrames = new ArrayList<Image>();
-    for (Image item : content) {
+    for (Image item : videoContent) {
       if (item.name.equals(image.name)) {
         videoFrames.add(item);
       }
