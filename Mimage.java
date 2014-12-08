@@ -12,6 +12,7 @@ public class Mimage {
   private static int WIDTH;
   private static int HEIGHT;
   private static int BIN_SIZE = 32;
+  private static int BLOCK_SIZE = 8;
   private static ArrayList<Image> content;
   private static ArrayList<Image> videoContent;
 
@@ -39,7 +40,6 @@ public class Mimage {
         ArrayList<Image> video = new ArrayList<Image>();
         for (BufferedImage frame : frames) {
           Image image = new Image(frame, file.getName());
-          image.setHistogram();
           video.add(image);
           videoContent.add(image);
         }
@@ -50,7 +50,6 @@ public class Mimage {
       } else if (frames.size() == 1){
         // Just an image, add to list of images
         Image image = new Image(frames.get(0), file.getName());
-        image.setHistogram();
         content.add(image);
       }
     }
@@ -116,7 +115,7 @@ public class Mimage {
       cluster.add(images);
       return cluster;
     }
-    int[][] differences = findDifferences(images);
+    double[][] differences = findDifferences(images);
     Clusterizer clusterizer = new Clusterizer(images, differences);
     ArrayList<ArrayList<Image>> clusters = clusterizer.getClusters(2);
     ArrayList<ArrayList<Image>> finalClusters = new ArrayList<ArrayList<Image>>();
@@ -126,25 +125,26 @@ public class Mimage {
     return finalClusters;
   }
 
-  private static int[][] findDifferences(ArrayList<Image> images) {
-    int[][] differenceMatrix = new int[images.size()][images.size()];
+  private static double[][] findDifferences(ArrayList<Image> images) {
+    double[][] differenceMatrix = new double[images.size()][images.size()];
     for(int i=0; i < images.size(); i++) {
       for(int j=0; j < images.size(); j++) {
         if(i == j)
           continue;
         differenceMatrix[i][j] = getDifference(images.get(i),images.get(j));
+        // differenceMatrix[i][j] += getEdgeDifference(images.get(i), images.get(j));
       }
     }
     return differenceMatrix;
   }
 
-  private static int getDifference(Image image1, Image image2) {
+  private static double getDifference(Image image1, Image image2) {
     Histogram h1 = image1.getHistogram();
     Histogram h2 = image2.getHistogram();
     // get Red bin from histograms
     int[] bins1 = h1.getBins(0);
     int[] bins2 = h2.getBins(0);
-    int differenceSum = 0;
+    double differenceSum = 0;
     for (int i = 0; i < bins1.length; i += BIN_SIZE) {
       int binCount1 = 0;
       int binCount2 = 0;
@@ -152,6 +152,8 @@ public class Mimage {
         binCount1 += bins1[j];
         binCount2 += bins2[j];
       }
+      double normal1 = (double)binCount1/(double)(HEIGHT*WIDTH);
+      double normal2 = (double)binCount2/(double)(HEIGHT*WIDTH);
       differenceSum += Math.abs(binCount1 - binCount2);
     }
     // get Green bin from histograms
@@ -164,6 +166,8 @@ public class Mimage {
         binCount1 += bins1[j];
         binCount2 += bins2[j];
       }
+      double normal1 = (double)binCount1/(double)(HEIGHT*WIDTH);
+      double normal2 = (double)binCount2/(double)(HEIGHT*WIDTH);
       differenceSum += Math.abs(binCount1 - binCount2);
     }
     // get Blue bin from histograms
@@ -176,9 +180,41 @@ public class Mimage {
         binCount1 += bins1[j];
         binCount2 += bins2[j];
       }
+      double normal1 = (double)binCount1/(double)(HEIGHT*WIDTH);
+      double normal2 = (double)binCount2/(double)(HEIGHT*WIDTH);
       differenceSum += Math.abs(binCount1 - binCount2);
     }
-    // return total histogram difference
+    return differenceSum;
+  }
+
+  private static double getEdgeDifference(Image image1, Image image2) {
+    BufferedImage edge1 = image1.edgeImg;
+    BufferedImage edge2 = image2.edgeImg;
+    // get Red bin from histograms
+    double differenceSum = 0;
+    for (int i = 0; i < WIDTH; i += BLOCK_SIZE) {
+      for (int j = 0; j < HEIGHT; j += BLOCK_SIZE) {
+        int count1 = 0;
+        int count2 = 0;
+        for (int k = i; k < i + BLOCK_SIZE; k++) {
+          for (int l = j; l < j + BLOCK_SIZE; l++) {
+            Color pixel1 = new Color(edge1.getRGB(k, l));
+            Color pixel2 = new Color(edge2.getRGB(k, l));
+            if (pixel1.getRed() > 64 || pixel1.getGreen() > 64 || pixel1.getBlue() > 64) {
+              count1 ++;
+            }
+            if (pixel2.getRed() > 64 || pixel2.getGreen() > 64 || pixel2.getBlue() > 64) {
+              count2 ++;
+            }
+          }
+        }
+        double normal1 = (double)count1/(double)(BLOCK_SIZE*BLOCK_SIZE);
+        double normal2 = (double)count2/(double)(BLOCK_SIZE*BLOCK_SIZE);
+        differenceSum += Math.abs(normal1 - normal2);
+      }
+    }
+    // return total edge difference
+    System.out.println(image1.name + " " + image2.name + " " + differenceSum);
     return differenceSum;
   }
 

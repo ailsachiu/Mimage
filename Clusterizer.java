@@ -3,9 +3,9 @@ import java.util.*;
 public class Clusterizer {
 
   ArrayList<Image> images;
-  int[][] matrix;
+  double[][] matrix;
 
-  public Clusterizer(ArrayList<Image> images, int[][] matrix) {
+  public Clusterizer(ArrayList<Image> images, double[][] matrix) {
     this.images = images;
     this.matrix = matrix;
   }
@@ -30,7 +30,7 @@ public class Clusterizer {
     // go through k iterations to get k clusters
     for (int k = 0; k < clusters; k++) {
       // keep track of max difference found in matrix
-      int max = 0;
+      double max = 0;
       int firstIndex = 0;
       int secondIndex = 0;
       // search through entire matrix to find max distance
@@ -67,7 +67,7 @@ public class Clusterizer {
       // skip value if it is used as a cluster head
       if (indices.contains(i))
         continue;
-      int minValue = Integer.MAX_VALUE;
+      double minValue = Double.MAX_VALUE;
       int minCluster = 0;
       for (int clusterHead : indices) {
         // skip value if it is equal to the cluster head

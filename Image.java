@@ -9,6 +9,7 @@ import java.awt.image.renderable.ParameterBlock;
 
 public class Image {
 	public BufferedImage img;
+  public BufferedImage edgeImg;
 	public String name;
 
 	private Histogram hist;
@@ -16,6 +17,8 @@ public class Image {
 	public Image(BufferedImage img, String name) {
 		this.img = img;
 		this.name = name;
+    setHistograms();
+    edgeDetection();
 	}
 
   public void edgeDetection() {
@@ -31,9 +34,10 @@ public class Image {
     KernelJAI kern_v = new KernelJAI(3,3,data_v);
     // Create the Gradient operation.
     PlanarImage im1 = (PlanarImage)JAI.create("gradientmagnitude", im0, kern_h, kern_v);
+    this.edgeImg = im1.getAsBufferedImage();
   }
 
-	public void setHistogram() {
+	public void setHistograms() {
 		// Set up the parameters for the Histogram object.
     int[] bins = {256, 256, 256};             // The number of bins.
     double[] low = {0.0D, 0.0D, 0.0D};        // The low value.
